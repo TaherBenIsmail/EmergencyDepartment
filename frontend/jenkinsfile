@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // Définir les variables d'environnement si nécessaire
         NODE_ENV = 'production'
     }
 
@@ -10,7 +9,6 @@ pipeline {
         stage('Declarative: Checkout SCM') {
             steps {
                 script {
-                    // Effectue le checkout du code source
                     checkout scm
                 }
             }
@@ -19,9 +17,9 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 script {
-                    // Installer les dépendances du projet Node.js (frontend)
+                    // Installer toutes les dépendances, y compris celles de développement
                     dir('frontend') {
-                        sh 'npm install'
+                        sh 'npm install --legacy-peer-deps' // Ajout de --legacy-peer-deps si nécessaire
                     }
                 }
             }
@@ -30,7 +28,7 @@ pipeline {
         stage('Unit Test') {
             steps {
                 script {
-                    // Exécute les tests en ignorant les erreurs si aucun test n'est trouvé
+                    // Exécuter les tests en passant à l'étape suivante si aucun test n'est trouvé
                     dir('frontend') {
                         sh 'npm test -- --passWithNoTests'
                     }
@@ -41,7 +39,6 @@ pipeline {
         stage('Build application') {
             steps {
                 script {
-                    // Construire l'application avec Next.js
                     dir('frontend') {
                         sh 'npm run build'
                     }
@@ -52,7 +49,6 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // Ajouter ici les étapes de déploiement si nécessaires
                     echo 'Déploiement de l\'application'
                 }
             }
@@ -61,7 +57,6 @@ pipeline {
 
     post {
         always {
-            // Nettoyage ou actions à faire après chaque exécution
             echo 'Pipeline terminé.'
         }
         success {
