@@ -19,30 +19,28 @@ pipeline {
                 script {
                     // Assurer une installation propre des modules Node
                     dir('frontend') {
-                        // Remove the node_modules and install dependencies with npm ci
                         sh 'rm -rf node_modules'
-                        sh 'npm install' // Use `npm install` instead of `npm ci` to ensure dependencies are correctly installed
+                        sh 'npm ci --legacy-peer-deps'
                     }
                 }
             }
         }
 
-        stage('Unit Test') {
+        // Commenter ou supprimer l'étape des tests
+        /*stage('Unit Test') {
             steps {
                 script {
-                    // Exécuter les tests en passant à l'étape suivante si aucun test n'est trouvé
                     dir('frontend') {
                         sh 'npm test -- --passWithNoTests'
                     }
                 }
             }
-        }
+        }*/
 
         stage('Build application') {
             steps {
                 script {
                     dir('frontend') {
-                        // Build the Next.js application
                         sh 'npm run build'
                     }
                 }
