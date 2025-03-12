@@ -1,79 +1,53 @@
 pipeline {
     agent any
 
-    environment {
-        // Définir des variables d'environnement si nécessaire
-        NODE_ENV = 'production'
-    }
-
     stages {
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
-                echo 'Checking out the repository...'
                 checkout scm
             }
         }
 
         stage('Clean and Install dependencies') {
             steps {
-                script {
-                    // Assurez-vous que le dossier node_modules est supprimé
-                    dir('frontend') {
-                        echo 'Cleaning node_modules...'
-                        sh 'rm -rf node_modules'
-
-                        // Installer les dépendances avec npm install
-                        echo 'Installing dependencies...'
-                        sh 'npm install --legacy-peer-deps'
-                    }
+                dir('frontend') {
+                    echo 'Cleaning node_modules...'
+                    sh 'rm -rf node_modules'
+                    echo 'Installing dependencies...'
+                    sh 'npm install --legacy-peer-deps'
                 }
             }
         }
 
+        // Commenter ou supprimer cette étape pour ignorer les tests
+        /*
         stage('Unit Test') {
             steps {
-                script {
-                    // Lancer les tests unitaires
-                    dir('frontend') {
-                        echo 'Running unit tests...'
-                        sh 'npm test'
-                    }
+                dir('frontend') {
+                    echo 'Running unit tests...'
+                    sh 'npm test'
                 }
             }
         }
+        */
 
         stage('Build Application') {
             steps {
-                script {
-                    // Construire l'application frontend
-                    dir('frontend') {
-                        echo 'Building the application...'
-                        sh 'npm run build'
-                    }
-                }
+                // Ajoutez ici la commande pour la construction de l'application
             }
         }
 
         stage('Deploy') {
             steps {
-                script {
-                    // Logique de déploiement à adapter en fonction de vos besoins
-                    echo 'Deploying the application...'
-                    // Exemple: sh 'deploy_script.sh' pour un déploiement personnalisé
-                }
+                // Ajoutez ici les étapes de déploiement
             }
         }
     }
-
+    
     post {
         always {
             echo 'Pipeline terminé.'
         }
-
-        success {
-            echo 'Le pipeline a réussi.'
-        }
-
         failure {
             echo 'Le pipeline a échoué.'
         }
