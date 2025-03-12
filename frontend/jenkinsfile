@@ -1,11 +1,25 @@
 pipeline {
     agent any
 
+    environment {
+        // Définir les variables d'environnement si nécessaire
+        NODE_ENV = 'production'
+    }
+
     stages {
+        stage('Declarative: Checkout SCM') {
+            steps {
+                script {
+                    // Effectue le checkout du code source
+                    checkout scm
+                }
+            }
+        }
+
         stage('Install dependencies') {
             steps {
                 script {
-                    // Installer les dépendances
+                    // Installer les dépendances du projet Node.js (frontend)
                     dir('frontend') {
                         sh 'npm install'
                     }
@@ -16,7 +30,7 @@ pipeline {
         stage('Unit Test') {
             steps {
                 script {
-                    // Exécuter les tests avec l'option --passWithNoTests pour ne pas échouer si aucun test n'est trouvé
+                    // Exécute les tests en ignorant les erreurs si aucun test n'est trouvé
                     dir('frontend') {
                         sh 'npm test -- --passWithNoTests'
                     }
@@ -27,12 +41,34 @@ pipeline {
         stage('Build application') {
             steps {
                 script {
-                    // Construction de l'application
+                    // Construire l'application avec Next.js
                     dir('frontend') {
                         sh 'npm run build'
                     }
                 }
             }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    // Ajouter ici les étapes de déploiement si nécessaires
+                    echo 'Déploiement de l\'application'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Nettoyage ou actions à faire après chaque exécution
+            echo 'Pipeline terminé.'
+        }
+        success {
+            echo 'Le pipeline a réussi !'
+        }
+        failure {
+            echo 'Le pipeline a échoué.'
         }
     }
 }
