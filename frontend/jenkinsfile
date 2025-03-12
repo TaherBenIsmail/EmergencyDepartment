@@ -2,47 +2,52 @@ pipeline {
     agent any
 
     environment {
+        // Définir des variables d'environnement si nécessaire
         NODE_ENV = 'production'
-        SKIP_TESTS = 'true' // Changer cette valeur pour passer ou ignorer les tests
     }
 
     stages {
-        stage('Declarative: Checkout SCM') {
+        stage('Checkout') {
             steps {
-                script {
-                    checkout scm
-                }
+                echo 'Checking out the repository...'
+                checkout scm
             }
         }
 
         stage('Clean and Install dependencies') {
             steps {
                 script {
+                    // Assurez-vous que le dossier node_modules est supprimé
                     dir('frontend') {
+                        echo 'Cleaning node_modules...'
                         sh 'rm -rf node_modules'
-                        sh 'npm ci --legacy-peer-deps'
+
+                        // Installer les dépendances avec npm install
+                        echo 'Installing dependencies...'
+                        sh 'npm install --legacy-peer-deps'
                     }
                 }
             }
         }
 
         stage('Unit Test') {
-            when {
-                expression { return env.SKIP_TESTS != 'true' }
-            }
             steps {
                 script {
+                    // Lancer les tests unitaires
                     dir('frontend') {
-                        sh 'npm test -- --passWithNoTests'
+                        echo 'Running unit tests...'
+                        sh 'npm test'
                     }
                 }
             }
         }
 
-        stage('Build application') {
+        stage('Build Application') {
             steps {
                 script {
+                    // Construire l'application frontend
                     dir('frontend') {
+                        echo 'Building the application...'
                         sh 'npm run build'
                     }
                 }
@@ -52,7 +57,9 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    echo 'Déploiement de l\'application'
+                    // Logique de déploiement à adapter en fonction de vos besoins
+                    echo 'Deploying the application...'
+                    // Exemple: sh 'deploy_script.sh' pour un déploiement personnalisé
                 }
             }
         }
@@ -62,9 +69,11 @@ pipeline {
         always {
             echo 'Pipeline terminé.'
         }
+
         success {
-            echo 'Le pipeline a réussi !'
+            echo 'Le pipeline a réussi.'
         }
+
         failure {
             echo 'Le pipeline a échoué.'
         }
