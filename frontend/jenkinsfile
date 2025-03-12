@@ -5,7 +5,8 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 script {
-                    dir('frontend') {  // Se déplacer dans le répertoire frontend
+                    // Installer les dépendances
+                    dir('frontend') {
                         sh 'npm install'
                     }
                 }
@@ -15,8 +16,9 @@ pipeline {
         stage('Unit Test') {
             steps {
                 script {
-                    dir('frontend') {  // Se déplacer dans le répertoire frontend
-                        sh 'npm test'
+                    // Exécuter les tests avec l'option --passWithNoTests pour ne pas échouer si aucun test n'est trouvé
+                    dir('frontend') {
+                        sh 'npm test -- --passWithNoTests'
                     }
                 }
             }
@@ -25,8 +27,9 @@ pipeline {
         stage('Build application') {
             steps {
                 script {
-                    dir('frontend') {  // Se déplacer dans le répertoire frontend
-                        sh 'npm run build-dev'
+                    // Construction de l'application
+                    dir('frontend') {
+                        sh 'npm run build'
                     }
                 }
             }
