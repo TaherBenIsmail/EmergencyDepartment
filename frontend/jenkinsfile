@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         NODE_ENV = 'production'
+        SKIP_TESTS = 'true' // Changer cette valeur pour passer ou ignorer les tests
     }
 
     stages {
@@ -17,7 +18,6 @@ pipeline {
         stage('Clean and Install dependencies') {
             steps {
                 script {
-                    // Assurer une installation propre des modules Node
                     dir('frontend') {
                         sh 'rm -rf node_modules'
                         sh 'npm ci --legacy-peer-deps'
@@ -26,8 +26,10 @@ pipeline {
             }
         }
 
-        // Commenter ou supprimer l'étape des tests
-        /*stage('Unit Test') {
+        stage('Unit Test') {
+            when {
+                expression { return env.SKIP_TESTS != 'true' }
+            }
             steps {
                 script {
                     dir('frontend') {
@@ -35,7 +37,7 @@ pipeline {
                     }
                 }
             }
-        }*/
+        }
 
         stage('Build application') {
             steps {
