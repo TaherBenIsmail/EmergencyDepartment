@@ -19,8 +19,9 @@ pipeline {
                 script {
                     // Assurer une installation propre des modules Node
                     dir('frontend') {
+                        // Remove the node_modules and install dependencies with npm ci
                         sh 'rm -rf node_modules'
-                        sh 'npm ci --legacy-peer-deps'
+                        sh 'npm install' // Use `npm install` instead of `npm ci` to ensure dependencies are correctly installed
                     }
                 }
             }
@@ -41,6 +42,7 @@ pipeline {
             steps {
                 script {
                     dir('frontend') {
+                        // Build the Next.js application
                         sh 'npm run build'
                     }
                 }
