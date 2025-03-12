@@ -1,29 +1,35 @@
 pipeline {
-    agent any 
+    agent any
 
     stages {
-        stage('Install dependencies') { 
-            steps { 
-                script { 
-                    sh 'npm install'
-                } 
-            } 
+        stage('Install dependencies') {
+            steps {
+                script {
+                    dir('frontend') {  // Se déplacer dans le répertoire frontend
+                        sh 'npm install'
+                    }
+                }
+            }
         }
 
-        stage('Unit Test') { 
-            steps { 
-                script { 
-                    sh 'npm test'
-                } 
-            } 
+        stage('Unit Test') {
+            steps {
+                script {
+                    dir('frontend') {  // Se déplacer dans le répertoire frontend
+                        sh 'npm test'
+                    }
+                }
+            }
         }
 
-        stage('Build application') { 
-            steps { 
-                script { 
-                    sh 'npm run build-dev'
-                } 
-            } 
+        stage('Build application') {
+            steps {
+                script {
+                    dir('frontend') {  // Se déplacer dans le répertoire frontend
+                        sh 'npm run build-dev'
+                    }
+                }
+            }
         }
     }
 }
