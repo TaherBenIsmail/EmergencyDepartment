@@ -14,12 +14,13 @@ pipeline {
             }
         }
 
-        stage('Install dependencies') {
+        stage('Clean and Install dependencies') {
             steps {
                 script {
-                    // Installer toutes les dépendances, y compris celles de développement
+                    // Assurer une installation propre des modules Node
                     dir('frontend') {
-                        sh 'npm install --legacy-peer-deps' // Ajout de --legacy-peer-deps si nécessaire
+                        sh 'rm -rf node_modules'
+                        sh 'npm ci --legacy-peer-deps'
                     }
                 }
             }
