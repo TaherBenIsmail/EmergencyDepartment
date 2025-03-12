@@ -19,7 +19,7 @@ pipeline {
             }
         }
 
-        // Commenter ou supprimer cette étape pour ignorer les tests
+        // Suppression de l'étape "Unit Test" ou ajout d'une étape vide si nécessaire
         /*
         stage('Unit Test') {
             steps {
@@ -34,16 +34,18 @@ pipeline {
         stage('Build Application') {
             steps {
                 // Ajoutez ici la commande pour la construction de l'application
+                echo 'Building the application...'
             }
         }
 
         stage('Deploy') {
             steps {
                 // Ajoutez ici les étapes de déploiement
+                echo 'Deploying the application...'
             }
         }
     }
-    
+
     post {
         always {
             echo 'Pipeline terminé.'
