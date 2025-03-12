@@ -1,67 +1,35 @@
 pipeline {
     agent any
 
-    environment {
-        NODE_HOME = tool name: 'NodeJS', type: 'NodeJSInstallation'
-        PATH = "${NODE_HOME}/bin:${env.PATH}"
-    }
-
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Install Dependencies') {
+        stage('Install dependencies') {
             steps {
                 script {
-                    dir('frontend') {
+                    dir('frontend') {  // Se déplacer dans le répertoire frontend
                         sh 'npm install'
                     }
                 }
             }
         }
 
-        stage('Run Tests') {
+        stage('Unit Test') {
             steps {
                 script {
-                    dir('frontend') {
+                    dir('frontend') {  // Se déplacer dans le répertoire frontend
                         sh 'npm test'
                     }
                 }
             }
         }
 
-        stage('Build Application') {
+        stage('Build application') {
             steps {
                 script {
-                    dir('frontend') {
-                        sh 'npm run build'
+                    dir('frontend') {  // Se déplacer dans le répertoire frontend
+                        sh 'npm run build-dev'
                     }
                 }
             }
-        }
-
-        stage('Deploy') {
-            steps {
-                script {
-                    // Ajoute ici les étapes de déploiement si nécessaires
-                    echo 'Deployment stage - Not Implemented'
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            cleanWs()
-        }
-        success {
-            echo 'Pipeline succeeded!'
-        }
-        failure {
-            echo 'Pipeline failed.'
         }
     }
 }
