@@ -21,7 +21,7 @@ import AppointmentList from "@/components/AppointmentList";
 import AppointmentListDoctor from "@/components/AppontmentListDoctor";
 import FacturePage from "./facture/page";
 import MesFactures from "./facture/mes-factures/page";
-
+import Symptomes from "@/components/Symptomes";
 
 const Home: React.FC = () => {
   const [role, setRole] = useState<string | null>(null);
@@ -121,6 +121,7 @@ const Home: React.FC = () => {
       {/* Conditional Rendering for Patients */}
       {role === "patient" && <MesFactures/>}
       {role === "doctor" && <FacturePage />}
+      {role === "patient" && <Symptomes/>}
       {role === "patient" && <Chatbot />}
       {role === "patient" && <AppointmentList />} {/* Show AppointmentList for patient */}
       {role === "doctor" && <AppointmentListDoctor />} {/* Show AppointmentListDoctor for doctor */}

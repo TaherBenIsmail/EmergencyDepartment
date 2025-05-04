@@ -51,7 +51,7 @@ transporter.verify((error, success) => {
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const frontendImagesPath = path.join(
-      'C:/Users/Manel/Downloads/2nd template/frontend/public/images'
+      'C:/Users/user/Desktop/EmergencyDepartment/frontend/public/images'
 
     );
     
@@ -72,7 +72,7 @@ const storagedc = multer.diskStorage({
   destination: (req, file, cb) => {
     const frontendImagesPath = path2.join(
 
-      'C:/Users/Manel/Downloads/2nd template/backoffice/public/images'
+      'C:/Users/user/Desktop/EmergencyDepartment/backoffice/public/images'
 
     );
   

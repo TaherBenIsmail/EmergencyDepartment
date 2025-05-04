@@ -26,6 +26,10 @@ const chatRouter = require('./api/chat');
 const makeappointmentRouter = require('./api/makeappointment');
 const SpecialiteRouter = require('./api/Specialite');
 const paiementRouter = require('./api/routes/paiementRoutes');
+const classificationRouter = require('./api/Classification');
+const MaladiepredictionRouter = require('./api/Maladieprediction');
+
+const { spawn } = require("child_process"); 
 app.use(cors({
   origin: ["http://localhost:5173", "http://localhost:3001", "http://localhost:3002"],
   credentials: true
@@ -75,6 +79,8 @@ app.use('/makeappointment', makeappointmentRouter);
 app.use('/api/consultations', consultationRouter);
 app.use('/api/paiements', paiementRouter);
 app.use('/api/rendez-vous', rendezVousRouter);
+app.use('/classification', classificationRouter);
+app.use('/symptomes', MaladiepredictionRouter);
 
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
