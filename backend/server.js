@@ -215,7 +215,8 @@ app.post('/api/analyze-symptoms', (req, res) => {
   res.json({ responses });
 });
 
-// ✅ Start server
-app.listen(port, () => {
+
+// ✅ Start the server (Express + Socket.IO)
+server.listen(port, () => {
   console.log(`✅ Server is running on port ${port}`);
 });
