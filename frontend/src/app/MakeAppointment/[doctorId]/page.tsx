@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation"; // Ajoutez useRouter
+import { usePathname, useRouter } from "next/navigation";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -9,12 +9,12 @@ import Image from "next/image";
 
 export default function MakeAppointment() {
   const pathname = usePathname();
-  const router = useRouter(); // Déclarez router pour pouvoir rediriger
-  const [doctorId, setDoctorId] = useState<string | undefined>(undefined);
-  const [doctorFullName, setDoctorFullName] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string>("");
-  const [token, setToken] = useState<string | null>(null);
+  const router = useRouter();
+  const [doctorId, setDoctorId] = useState(undefined);
+  const [doctorFullName, setDoctorFullName] = useState("");
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedTime, setSelectedTime] = useState("");
+  const [token, setToken] = useState(null);
 
   // Récupérer le doctorId depuis l'URL
   useEffect(() => {
@@ -57,7 +57,6 @@ export default function MakeAppointment() {
     }
   }, []);
   
-  // Dans handleAppointment
   const handleAppointment = async () => {
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("userId");
@@ -118,57 +117,119 @@ export default function MakeAppointment() {
   ];
 
   // Vérifier si toutes les conditions sont remplies pour activer le bouton
-  const isButtonDisabled = !selectedDate || !selectedTime ;
+  const isButtonDisabled = !selectedDate || !selectedTime;
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-500 to-indigo-600 p-6">
-      <div className="flex items-center bg-white/20 backdrop-blur-lg p-8 rounded-3xl shadow-xl w-[700px]">
-        <div className="w-1/2 hidden md:block">
-          <Image src="/images/doctor-3d.png" alt="Médecin 3D" width={250} height={250} className="mx-auto" />
+    <div className="flex items-center justify-center min-h-screen bg-blue-50 p-6">
+      <div className="flex flex-col items-center bg-white rounded-2xl shadow-lg w-full max-w-4xl p-8">
+        <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
+          <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+          </svg>
         </div>
+        
+        <h2 className="text-2xl font-semibold text-blue-600 mb-6">
+          Prendre un rendez-vous avec {doctorFullName || "le médecin"}
+        </h2>
+        
+        <p className="text-gray-500 mb-8 text-center">
+          Sélectionnez une date et une heure disponibles pour votre consultation
+        </p>
 
-        <div className="w-full md:w-1/2 text-center">
-          <h2 className="text-2xl font-semibold text-white mb-4">
-            📅 Prendre un rendez-vous avec {doctorFullName || "le médecin"}
-          </h2>
-
-          <div className="mb-4 relative">
-            <label className="block text-white text-sm mb-2">Sélectionnez une date :</label>
-            <div className="relative">
-              <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white" />
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-6">
+            <div className="bg-blue-50 p-4 rounded-xl">
+              <div className="flex items-center gap-3 mb-2">
+                <FaCalendarAlt className="text-blue-600" />
+                <label className="text-blue-600 font-medium">Date</label>
+              </div>
               <DatePicker
                 selected={selectedDate}
-                onChange={(date: Date | null) => setSelectedDate(date)}
+                onChange={(date) => setSelectedDate(date)}
                 minDate={new Date()}
-                className="w-full pl-10 p-3 rounded-xl bg-white/30 text-white placeholder-white outline-none"
+                className="w-full p-3 rounded-xl bg-white border border-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 dateFormat="dd/MM/yyyy"
                 placeholderText="Choisissez une date"
               />
             </div>
-          </div>
 
-          <div className="mb-6">
-            <label className="block text-white text-sm mb-2">Sélectionnez une heure :</label>
-            <div className="grid grid-cols-3 gap-2">
-              {timeSlots.map((time, index) => (
-                <button
-                  key={index}
-                  className={`p-2 rounded-lg transition-all ${selectedTime === time ? "bg-white text-indigo-600 font-bold" : "bg-white/30 text-white"}`}
-                  onClick={() => setSelectedTime(time)}
-                >
-                  {time}
-                </button>
-              ))}
+            <div className="bg-blue-50 p-4 rounded-xl">
+              <div className="flex items-center gap-3 mb-2">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <label className="text-blue-600 font-medium">Heure</label>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {timeSlots.map((time, index) => (
+                  <button
+                    key={index}
+                    className={`p-3 rounded-lg transition-all ${
+                      selectedTime === time
+                        ? "bg-blue-600 text-white font-medium"
+                        : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
+                    }`}
+                    onClick={() => setSelectedTime(time)}
+                  >
+                    {time}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-          <button
-            className="w-full py-3 bg-white/30 text-white font-semibold rounded-lg hover:bg-white hover:text-indigo-600 transition-all"
-            onClick={handleAppointment}
-            disabled={isButtonDisabled} // Désactivation du bouton en fonction de la condition
-          >
-            ✅ Confirmer le rendez-vous
-          </button>
+          <div className="flex flex-col justify-between">
+            <div className="mb-6">
+              <Image 
+                src="/images/doctor-3d.png" 
+                alt="Médecin" 
+                width={200} 
+                height={200} 
+                className="mx-auto"
+              />
+            </div>
+            
+            <div className="bg-blue-50 p-4 rounded-xl">
+              <div className="flex items-center gap-3 mb-2">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className="text-blue-600 font-medium">Informations rendez-vous</span>
+              </div>
+              
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <div className="flex justify-between mb-2">
+                  <span className="text-gray-500">Médecin:</span>
+                  <span className="font-medium">{doctorFullName || "Non sélectionné"}</span>
+                </div>
+                <div className="flex justify-between mb-2">
+                  <span className="text-gray-500">Date:</span>
+                  <span className="font-medium">
+                    {selectedDate ? selectedDate.toLocaleDateString() : "Non sélectionnée"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Heure:</span>
+                  <span className="font-medium">{selectedTime || "Non sélectionnée"}</span>
+                </div>
+              </div>
+            </div>
+            
+            <button
+              className={`w-full py-4 mt-6 rounded-xl font-medium flex items-center justify-center gap-2 ${
+                isButtonDisabled
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
+              onClick={handleAppointment}
+              disabled={isButtonDisabled}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Confirmer le rendez-vous
+            </button>
+          </div>
         </div>
       </div>
     </div>

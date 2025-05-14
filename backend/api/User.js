@@ -65,7 +65,7 @@ const storage = multer.diskStorage({
       } catch (error) {
         console.error('Erreur lors de la création du dossier images:', error);
         // Utiliser un dossier de secours
-        const backupPath = path.join(__dirname, '../../backend/public/images');
+        const backupPath = path.join(__dirname, '../../backoffice/public/images');
         if (!fs.existsSync(backupPath)) {
           fs.mkdirSync(backupPath, { recursive: true });
         }
@@ -84,7 +84,7 @@ const storagedc = multer.diskStorage({
   destination: (req, file, cb) => {
     // Utiliser un chemin relatif au lieu d'un chemin absolu
     const backofficeImagesPath = path2.join(
-      __dirname, '../../backend/public/images'
+      __dirname, '../../backoffice/public/images'
     );
 
     console.log('Chemin de sauvegarde des images backoffice:', backofficeImagesPath);

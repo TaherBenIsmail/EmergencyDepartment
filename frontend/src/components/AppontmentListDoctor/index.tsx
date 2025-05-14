@@ -42,7 +42,7 @@ export default function AppointmentListDoctor() {
   const handleDeleteAppointment = async (appointmentId: string) => {
     try {
       const response = await axios.delete(
-        `http://localhost:3000/makeappointment/appointments/${appointmentId}`,
+        `http://localhost:3000/makeappointment/${appointmentId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

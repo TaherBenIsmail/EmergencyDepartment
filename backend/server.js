@@ -37,6 +37,9 @@ const paiementRouter = require('./api/routes/paiementRoutes');
 const googleCalendarRouter = require('./api/routes/googleCalendarRoutes');
 const classificationRouter = require('./api/Classification');
 const MaladiepredictionRouter = require('./api/Maladieprediction');
+const triageRouter       = require('./api/routes/triage'); 
+const radiologyRouter = require('./api/radiology'); 
+const violenceRouter = require('./api/violence'); 
 
 // ✅ Configure CORS
 app.use(cors({
@@ -105,6 +108,9 @@ app.use('/api/chat-messages', chatMessageRouter);
 app.use('/api/mortality', mortalityRouter);
 app.use('/classification', classificationRouter);
 app.use('/symptomes', MaladiepredictionRouter);
+app.use('/api/triage', triageRouter);
+app.use('/api', radiologyRouter);
+app.use('/api', violenceRouter);
 
 // ✅ Socket.IO connection handling
 io.on('connection', (socket) => {

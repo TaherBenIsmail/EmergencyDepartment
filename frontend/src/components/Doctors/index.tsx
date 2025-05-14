@@ -1,21 +1,33 @@
 import React, { useEffect, useState } from "react";
+import { Search, Filter, Star, Calendar, MapPin, Heart } from "lucide-react";
 
 interface Specialty {
   _id: string;
   name: string;
 }
 
+interface Doctor {
+  _id: string;
+  name: string;
+  lastname: string;
+  specialty: string;
+  image: string;
+  role: string;
+}
+
 const DoctorsList = () => {
   const [doctors, setDoctors] = useState([]);
-  const [specialties, setSpecialties] = useState<{ [key: string]: string }>({});
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string>("all");
+  const [specialties, setSpecialties] = useState({});
+  const [selectedSpecialty, setSelectedSpecialty] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Récupération des spécialités
+  // Fetch specialties
   useEffect(() => {
     fetch("http://localhost:3000/specialite/getspecialite")
       .then((res) => res.json())
-      .then((data: Specialty[]) => {
-        const specialtyMap: { [key: string]: string } = {};
+      .then((data) => {
+        const specialtyMap = {};
         data.forEach((s) => {
           specialtyMap[s._id] = s.name;
         });
@@ -24,8 +36,9 @@ const DoctorsList = () => {
       .catch((error) => console.error("Error fetching specialties:", error));
   }, []);
 
-  // Récupération des médecins
+  // Fetch doctors
   useEffect(() => {
+    setIsLoading(true);
     fetch("http://localhost:3000/user/getDoctors")
       .then((res) => res.json())
       .then((data) => {
@@ -35,94 +48,159 @@ const DoctorsList = () => {
         } else {
           console.error("Expected an array but got:", data);
         }
+        setIsLoading(false);
       })
-      .catch((error) => console.error("Error fetching doctors:", error));
+      .catch((error) => {
+        console.error("Error fetching doctors:", error);
+        setIsLoading(false);
+      });
   }, []);
 
-  // Filtrage des médecins selon la spécialité sélectionnée
-  const filteredDoctors =
-    selectedSpecialty === "all"
-      ? doctors
-      : doctors.filter(
-          (doctor) => doctor.specialty === selectedSpecialty
-        );
+  // Filter doctors based on selected specialty and search term
+  const filteredDoctors = doctors.filter((doctor) => {
+    const matchesSpecialty = selectedSpecialty === "all" || doctor.specialty === selectedSpecialty;
+    const matchesSearch = 
+      searchTerm === "" || 
+      doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      doctor.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (doctor.specialty && specialties[doctor.specialty]?.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    return matchesSpecialty && matchesSearch;
+  });
 
-  // Fonction pour rediriger vers la page Make Appointment avec l'ID du docteur
-  const handleMakeAppointment = (doctorId: string) => {
-    window.location.href = `/MakeAppointment/${doctorId}`; // Redirige vers la page Make Appointment avec l'ID du docteur
+  // Handle appointment scheduling
+  const handleMakeAppointment = (doctorId) => {
+    window.location.href = `/MakeAppointment/${doctorId}`;
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <h2 className="text-4xl font-bold text-center text-blue-700 mb-8">
-        Meet Our Exceptional Doctors
-      </h2>
+    <div className="min-h-screen bg-blue-50 py-12">
+      <div className="container mx-auto px-4">
+        {/* Header and introduction */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-blue-600 mb-4">
+            Découvrez Nos Médecins
+          </h1>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            Prenez rendez-vous avec nos médecins qualifiés dans diverses spécialités.
+          </p>
+        </div>
 
-      {/* Filtre de spécialité */}
-      <div className="mb-6">
-        <label
-          htmlFor="specialtyFilter"
-          className="text-lg font-semibold text-gray-700"
-        >
-          Filter by Specialty:
-        </label>
-        <select
-          id="specialtyFilter"
-          className="mt-2 p-2 w-full sm:w-1/2 md:w-1/3 bg-gray-100 border rounded-lg"
-          value={selectedSpecialty}
-          onChange={(e) => setSelectedSpecialty(e.target.value)}
-        >
-          <option value="all">All Specialties</option>
-          {Object.entries(specialties).map(([id, name]) => (
-            <option key={id} value={id}>
-              {name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredDoctors.length > 0 ? (
-          filteredDoctors.map((doctor) => (
-            <div
-              key={doctor._id}
-              className="group bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500 ease-in-out"
-            >
-              {/* Image dans un cercle */}
-              <div className="relative w-full h-64 bg-gradient-to-r from-blue-400 via-indigo-600 to-purple-700 p-4 rounded-t-3xl flex justify-center items-center">
-                <img
-                  src={
-                    doctor.image
-                      ? `http://localhost:3002/images/${doctor.image}`
-                      : "/default-doctor.jpg"
-                  }
-                  alt={doctor.name}
-                  className="w-40 h-40 object-cover rounded-full border-4 border-white transition-all duration-300 ease-in-out group-hover:scale-105"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="text-2xl font-semibold text-gray-800">
-                  Dr. {doctor.name} {doctor.lastname}
-                </h3>
-                <p className="text-lg text-gray-600 mt-2">
-                  Specialty:{" "}
-                  <span className="text-blue-500">
-                    {doctor.specialty && specialties[doctor.specialty]
-                      ? specialties[doctor.specialty]
-                      : "Unknown"}
-                  </span>
-                </p>
-                <button
-                  className="w-full mt-4 py-2 rounded-lg bg-blue-500 text-white font-semibold transition-all duration-200 ease-in-out transform hover:scale-105 hover:bg-blue-600"
-                  onClick={() => handleMakeAppointment(doctor._id)} // Appel de la fonction de redirection
-                >
-                  Make Appointment
-                </button>
+        {/* Search bar and filters */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-12">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-grow">
+              <Search className="absolute left-3 top-3 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder="Rechercher un médecin par nom ou spécialité..."
+                className="w-full pl-10 pr-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="relative md:w-1/3">
+              <Filter className="absolute left-3 top-3 text-gray-400" size={20} />
+              <select
+                className="w-full pl-10 pr-4 py-3 rounded-lg bg-gray-50 border border-gray-200 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={selectedSpecialty}
+                onChange={(e) => setSelectedSpecialty(e.target.value)}
+              >
+                <option value="all">Toutes les spécialités</option>
+                {Object.entries(specialties).map(([id, name]) => (
+                  <option key={id} value={id}>{name}</option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
               </div>
             </div>
-          ))
+          </div>
+        </div>
+
+        {/* Results */}
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
         ) : (
-          <p className="text-center text-gray-500">No doctors available</p>
+          <>
+            <p className="text-gray-600 mb-6 font-medium">
+              {filteredDoctors.length} médecin{filteredDoctors.length !== 1 ? 's' : ''} trouvé{filteredDoctors.length !== 1 ? 's' : ''}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredDoctors.length > 0 ? (
+                filteredDoctors.map((doctor) => (
+                  <div
+                    key={doctor._id}
+                    className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg"
+                  >
+                    <div className="relative">
+                      {/* Cover */}
+                      <div className="h-24 bg-blue-500"></div>
+                      
+                      {/* Doctor photo */}
+                      <div className="absolute -bottom-12 left-6">
+                        <div className="rounded-full border-4 border-white bg-white shadow-md">
+                          <img
+                            src={
+                              doctor.image
+                                ? `http://localhost:3002/images/${doctor.image}`
+                                : "/default-doctor.jpg"
+                            }
+                            alt={`Dr. ${doctor.name} ${doctor.lastname}`}
+                            className="w-24 h-24 rounded-full object-cover"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-16 pb-6 px-6">
+                      {/* Doctor info */}
+                      <div className="mb-4">
+                        <h3 className="text-xl font-bold text-gray-800 mb-1">
+                          Dr. {doctor.name} {doctor.lastname}
+                        </h3>
+                        <p className="text-blue-600 font-medium">
+                          {doctor.specialty && specialties[doctor.specialty]
+                            ? specialties[doctor.specialty]
+                            : "Spécialité non spécifiée"}
+                        </p>
+                      </div>
+
+                      {/* Additional details */}
+                      <div className="mb-6">
+                        <div className="flex items-center text-gray-600">
+                          <MapPin size={16} className="mr-2 text-gray-400" />
+                          <span className="text-sm">Disponible en téléconsultation</span>
+                        </div>
+                      </div>
+
+                      {/* Appointment button */}
+                      <button
+                        onClick={() => handleMakeAppointment(doctor._id)}
+                        className="w-full py-3 rounded-lg bg-blue-500 text-white font-medium hover:bg-blue-600 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center"
+                      >
+                        <Calendar size={18} className="mr-2" />
+                        Prendre rendez-vous
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12 text-gray-500">
+                  <div className="mx-auto w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                    <Search size={32} className="text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-medium text-gray-700 mb-2">Aucun médecin trouvé</h3>
+                  <p>Essayez de modifier vos critères de recherche</p>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>

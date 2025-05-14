@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, X, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
+import { Search, X, ChevronDown, ChevronUp, AlertCircle, Pill, Info, AlertOctagon, Clock } from 'lucide-react';
 
 const MedicationSearch = () => {
   const [brandName, setBrandName] = useState('');
@@ -51,17 +51,37 @@ const MedicationSearch = () => {
     setError(null);
   };
 
+  const sectionIcons = {
+    indications: <Info size={20} className="text-blue-500" />,
+    warnings: <AlertOctagon size={20} className="text-amber-500" />,
+    dosage: <Clock size={20} className="text-green-500" />,
+    ingredients: <Pill size={20} className="text-purple-500" />
+  };
+
+  const sectionTitles = {
+    indications: "Uses & Indications",
+    warnings: "Warnings & Precautions",
+    dosage: "Dosage & Administration",
+    ingredients: "Active Ingredients"
+  };
+
   return (
-    <div className="w-full max-w-4xl mx-auto p-4">
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Medication Information Lookup</h1>
+    <div className="w-full max-w-4xl mx-auto p-4 bg-gradient-to-b from-blue-50 to-white min-h-screen">
+      <div className="bg-white rounded-xl shadow-xl p-8 border border-gray-100">
+        <div className="flex items-center mb-8">
+          <Pill className="text-blue-600 mr-3" size={28} />
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">MediSearch</h1>
+        </div>
         
-        <div className="flex items-center mb-6">
+        <div className="flex items-center mb-8 relative">
           <div className="relative flex-grow">
+            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <Search size={20} />
+            </div>
             <input
               type="text"
-              className="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter medication brand name..."
+              className="w-full p-4 pl-12 pr-12 border-2 border-gray-200 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm hover:shadow-md text-lg"
+              placeholder="Search medication by brand name..."
               value={brandName}
               onChange={(e) => setBrandName(e.target.value)}
               onKeyUp={(e) => e.key === 'Enter' && searchMedication()}
@@ -69,124 +89,86 @@ const MedicationSearch = () => {
             {brandName && (
               <button 
                 onClick={clearResults}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Clear search"
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             )}
           </div>
           <button
             onClick={searchMedication}
             disabled={loading || !brandName.trim()}
-            className="ml-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-blue-300 flex items-center"
+            className="ml-4 px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-full hover:from-blue-600 hover:to-blue-800 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg text-lg font-medium flex items-center"
           >
-            <Search size={18} className="mr-1" />
             {loading ? 'Searching...' : 'Search'}
           </button>
         </div>
 
         {error && (
-          <div className="p-4 mb-6 bg-red-50 border-l-4 border-red-500 rounded">
+          <div className="p-4 mb-8 bg-red-50 border-l-4 border-red-500 rounded-lg animate-fade-in transition-all duration-300 ease-in-out">
             <div className="flex items-center">
-              <AlertCircle className="text-red-500 mr-2" size={20} />
-              <p className="text-red-700">{error}</p>
+              <AlertCircle className="text-red-500 mr-3 flex-shrink-0" size={24} />
+              <p className="text-red-700 font-medium">{error}</p>
             </div>
           </div>
         )}
 
         {medication && (
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <div className="mb-4">
-              <h2 className="text-xl font-bold text-gray-800">
+          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-md transition-all animate-fade-in duration-300 ease-in-out">
+            <div className="mb-6 border-b border-gray-100 pb-4">
+              <div className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-2">
+                Medication Details
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800">
                 {medication.openfda?.brand_name?.[0] || 'Unknown Brand'}
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-lg">
                 {medication.openfda?.generic_name?.[0] || 'Generic name not available'}
               </p>
             </div>
 
-            {/* Information Section */}
-            <div className="space-y-3">
-              {/* Indications Section */}
-              <div className="border border-gray-200 rounded bg-white">
-                <button 
-                  onClick={() => toggleSection('indications')}
-                  className="w-full px-4 py-3 flex justify-between items-center hover:bg-gray-50"
+            {/* Information Sections */}
+            <div className="space-y-4">
+              {Object.keys(expandedSections).map(section => (
+                <div 
+                  key={section}
+                  className={`border border-gray-200 rounded-lg overflow-hidden transition-all duration-300 ${expandedSections[section] ? 'shadow-md' : 'shadow-sm hover:shadow-md'}`}
                 >
-                  <span className="font-medium">Uses & Indications</span>
-                  {expandedSections.indications ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                </button>
-                
-                {expandedSections.indications && (
-                  <div className="px-4 py-3 border-t border-gray-200">
-                    <p className="text-gray-700 whitespace-pre-line">
-                      {medication.indications_and_usage?.[0] || 'No information available'}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Warnings Section */}
-              <div className="border border-gray-200 rounded bg-white">
-                <button 
-                  onClick={() => toggleSection('warnings')}
-                  className="w-full px-4 py-3 flex justify-between items-center hover:bg-gray-50"
-                >
-                  <span className="font-medium">Warnings & Precautions</span>
-                  {expandedSections.warnings ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                </button>
-                
-                {expandedSections.warnings && (
-                  <div className="px-4 py-3 border-t border-gray-200">
-                    <p className="text-gray-700 whitespace-pre-line">
-                      {medication.warnings?.[0] || 'No warnings available'}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Dosage Section */}
-              <div className="border border-gray-200 rounded bg-white">
-                <button 
-                  onClick={() => toggleSection('dosage')}
-                  className="w-full px-4 py-3 flex justify-between items-center hover:bg-gray-50"
-                >
-                  <span className="font-medium">Dosage & Administration</span>
-                  {expandedSections.dosage ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                </button>
-                
-                {expandedSections.dosage && (
-                  <div className="px-4 py-3 border-t border-gray-200">
-                    <p className="text-gray-700 whitespace-pre-line">
-                      {medication.dosage_and_administration?.[0] || 'No dosage information available'}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Active Ingredients Section */}
-              <div className="border border-gray-200 rounded bg-white">
-                <button 
-                  onClick={() => toggleSection('ingredients')}
-                  className="w-full px-4 py-3 flex justify-between items-center hover:bg-gray-50"
-                >
-                  <span className="font-medium">Active Ingredients</span>
-                  {expandedSections.ingredients ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                </button>
-                
-                {expandedSections.ingredients && (
-                  <div className="px-4 py-3 border-t border-gray-200">
-                    <p className="text-gray-700 whitespace-pre-line">
-                      {medication.active_ingredient?.[0] || 'No ingredient information available'}
-                    </p>
-                  </div>
-                )}
-              </div>
+                  <button 
+                    onClick={() => toggleSection(section)}
+                    className={`w-full px-5 py-4 flex justify-between items-center transition-colors ${expandedSections[section] ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}
+                    aria-expanded={expandedSections[section]}
+                    aria-controls={`content-${section}`}
+                  >
+                    <div className="flex items-center">
+                      <span className="mr-3">{sectionIcons[section]}</span>
+                      <span className="font-semibold text-gray-800">{sectionTitles[section]}</span>
+                    </div>
+                    <div className={`transition-transform duration-300 ${expandedSections[section] ? 'rotate-180' : ''}`}>
+                      <ChevronDown size={20} />
+                    </div>
+                  </button>
+                  
+                  {expandedSections[section] && (
+                    <div 
+                      id={`content-${section}`}
+                      className="px-5 py-4 border-t border-gray-200 bg-white"
+                    >
+                      <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+                        {medication[section === 'indications' ? 'indications_and_usage' : section === 'warnings' ? 'warnings' : section === 'dosage' ? 'dosage_and_administration' : 'active_ingredient']?.[0] || 'No information available'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
-
-            
           </div>
         )}
+      </div>
+      
+      <div className="text-center mt-8 text-gray-500 text-sm">
+        Data provided by OpenFDA. Always consult with a healthcare professional before taking any medication.
       </div>
     </div>
   );

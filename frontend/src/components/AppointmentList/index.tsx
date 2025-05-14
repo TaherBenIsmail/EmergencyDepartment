@@ -1,15 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { FaCheckCircle, FaClock, FaTimesCircle, FaTrashAlt } from "react-icons/fa";
+import { FaCheckCircle, FaClock, FaTimesCircle, FaTrashAlt, FaCalendarAlt } from "react-icons/fa";
 
 export default function AppointmentList() {
-  const [appointments, setAppointments] = useState<
-    { id: string; date: string; time: string; doctorName: string; status: string }[]
-  >([]);
+  const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showConfirmDelete, setShowConfirmDelete] = useState<string | null>(null); // Pour afficher la confirmation
+  const [showConfirmDelete, setShowConfirmDelete] = useState(null);
 
   // Récupérer la liste des rendez-vous de l'utilisateur
   useEffect(() => {
@@ -41,29 +39,24 @@ export default function AppointmentList() {
     fetchAppointments();
   }, []);
 
-  const handleDeleteAppointment = async (appointmentId: string) => {
+  const handleDeleteAppointment = async (appointmentId) => {
     const token = localStorage.getItem("token");
 
     try {
       const response = await axios.delete(
-        `http://localhost:3000/makeappointment/${appointmentId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        `http://localhost:3000/makeappointment/${appointmentId}`
       );
       if (response.status === 200) {
-        // Suppression réussie, mettre à jour la liste des rendez-vous
         setAppointments(appointments.filter((appointment) => appointment.id !== appointmentId));
         alert("Rendez-vous supprimé avec succès !");
-        setShowConfirmDelete(null); // Réinitialiser la confirmation après suppression
+        setShowConfirmDelete(null);
       }
     } catch (err) {
       alert("Erreur lors de la suppression du rendez-vous.");
-      console.error("Erreur suppression rendez-vous :", err);
     }
   };
 
-  const confirmDelete = (appointmentId: string) => {
+  const confirmDelete = (appointmentId) => {
     setShowConfirmDelete(appointmentId);
   };
 
@@ -71,91 +64,123 @@ export default function AppointmentList() {
     setShowConfirmDelete(null);
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "confirmed":
+        return {
+          bg: "bg-blue-100",
+          text: "text-blue-600",
+          icon: <FaCheckCircle className="text-blue-600" />
+        };
+      case "pending":
+        return {
+          bg: "bg-orange-100",
+          text: "text-orange-600",
+          icon: <FaClock className="text-orange-600" />
+        };
+      case "cancelled":
+        return {
+          bg: "bg-red-100",
+          text: "text-red-600",
+          icon: <FaTimesCircle className="text-red-600" />
+        };
+      default:
+        return {
+          bg: "bg-gray-100",
+          text: "text-gray-600",
+          icon: <FaClock className="text-gray-600" />
+        };
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case "confirmed": return "Confirmé";
+      case "pending": return "En attente";
+      case "cancelled": return "Annulé";
+      default: return "Inconnu";
+    }
+  };
+
   return (
-    <div className="bg-white min-h-screen flex items-center justify-center p-6">
-      <div className="w-full max-w-4xl bg-white p-8 rounded-xl shadow-xl">
-        <h2 className="text-4xl font-bold text-center text-indigo-800 mb-8">
-          📅 Mes Rendez-vous
+    <div className="bg-blue-50 min-h-screen flex items-center justify-center p-6">
+      <div className="w-full max-w-4xl bg-white p-8 rounded-xl shadow-lg">
+        <div className="flex justify-center mb-6">
+          <div className="bg-blue-600 h-16 w-16 rounded-full flex items-center justify-center">
+            <FaCalendarAlt className="text-white text-2xl" />
+          </div>
+        </div>
+        
+        <h2 className="text-3xl font-bold text-center text-blue-600 mb-2">
+          Mes Rendez-vous
         </h2>
+        <p className="text-center text-gray-600 mb-8">
+          Consultez et gérez vos rendez-vous médicaux
+        </p>
 
         {loading ? (
-          <p className="text-center text-gray-600">Chargement...</p>
+          <div className="text-center text-gray-600 p-8">Chargement...</div>
         ) : error ? (
-          <p className="text-center text-red-500">{error}</p>
+          <div className="text-center text-red-500 p-8">{error}</div>
         ) : appointments.length === 0 ? (
-          <p className="text-center text-gray-600">Aucun rendez-vous trouvé.</p>
+          <div className="text-center text-gray-600 p-8">Aucun rendez-vous trouvé.</div>
         ) : (
-          <ul className="space-y-6">
-            {appointments.map((appointment) => (
-              <li
-                key={appointment.id}
-                className="p-6 bg-white border border-gray-300 rounded-lg shadow-lg hover:shadow-2xl transition-all"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xl font-semibold text-indigo-800">
-                      {appointment.doctorName}
-                    </p>
-                    <p className="text-gray-600 text-sm">
-                      {appointment.date} à {appointment.time}
-                    </p>
-                  </div>
-
-                  {/* Affichage dynamique du statut avec icônes */}
-                  <span
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-semibold
-                      ${appointment.status === "confirmed"
-                        ? "bg-green-100 text-green-600"
-                        : appointment.status === "pending"
-                        ? "bg-yellow-100 text-yellow-600"
-                        : "bg-red-100 text-red-600"}`}
-                  >
-                    {appointment.status === "confirmed" && (
-                      <FaCheckCircle className="text-green-600" />
-                    )}
-                    {appointment.status === "pending" && (
-                      <FaClock className="text-yellow-600" />
-                    )}
-                    {appointment.status === "cancelled" && (
-                      <FaTimesCircle className="text-red-600" />
-                    )}
-                    <span>
-                      {appointment.status === "confirmed"
-                        ? "Confirmé"
-                        : appointment.status === "pending"
-                        ? "En attente"
-                        : "Annulé"}
-                    </span>
-                  </span>
-
-                  {/* Bouton de suppression */}
-                  {showConfirmDelete === appointment.id ? (
-                    <div className="flex space-x-4">
-                      <button
-                        onClick={() => handleDeleteAppointment(appointment.id)}
-                        className="ml-4 text-red-600 hover:text-red-800"
-                      >
-                        Confirmer
-                      </button>
-                      <button
-                        onClick={cancelDelete}
-                        className="ml-4 text-gray-600 hover:text-gray-800"
-                      >
-                        Annuler
-                      </button>
+          <div className="grid gap-4">
+            {appointments.map((appointment) => {
+              const statusStyle = getStatusColor(appointment.status);
+              
+              return (
+                <div
+                  key={appointment.id}
+                  className="bg-white rounded-lg border border-gray-200 shadow-md p-5 hover:shadow-lg transition-shadow"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xl font-semibold text-blue-600">
+                        {appointment.doctorName}
+                      </p>
+                      <p className="text-gray-600 text-sm">
+                        {appointment.date} à {appointment.time}
+                      </p>
                     </div>
-                  ) : (
-                    <button
-                      onClick={() => confirmDelete(appointment.id)}
-                      className="ml-4 text-red-600 hover:text-red-800"
-                    >
-                      <FaTrashAlt />
-                    </button>
-                  )}
+
+                    <div className="flex items-center space-x-4">
+                      <span
+                        className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium ${statusStyle.bg} ${statusStyle.text}`}
+                      >
+                        {statusStyle.icon}
+                        <span>{getStatusText(appointment.status)}</span>
+                      </span>
+
+                      {showConfirmDelete === appointment.id ? (
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleDeleteAppointment(appointment.id)}
+                            className="px-3 py-1 bg-red-100 text-red-600 rounded-md text-sm font-medium hover:bg-red-200"
+                          >
+                            Confirmer
+                          </button>
+                          <button
+                            onClick={cancelDelete}
+                            className="px-3 py-1 bg-gray-100 text-gray-600 rounded-md text-sm font-medium hover:bg-gray-200"
+                          >
+                            Annuler
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => confirmDelete(appointment.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <FaTrashAlt />
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </li>
-            ))}
-          </ul>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

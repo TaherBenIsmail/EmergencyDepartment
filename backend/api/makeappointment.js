@@ -2,34 +2,24 @@ const express = require('express');
 const router = express.Router();
 const Appointment = require('../models/Appointment');
 const mongoose = require('mongoose');
-const auth = require('../middleware/authMiddleware');
 
 // Prendre un rendez-vous
-router.post('/', auth, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { doctorId, userId, date, time } = req.body;
-    const requestUserId = req.user._id.toString(); // ID de l'utilisateur authentifié
-
-    // Vérifier que l'utilisateur crée un rendez-vous pour lui-même
-    if (userId !== requestUserId) {
-      return res.status(403).json({
-        success: false,
-        message: "Vous n'êtes pas autorisé à créer un rendez-vous pour un autre utilisateur.",
-      });
-    }
 
     // Validation des données
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
-      return res.status(400).json({
+      return res.status(400).json({ 
         success: false,
-        message: "ID médecin invalide"
+        message: "ID médecin invalide" 
       });
     }
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
+      return res.status(400).json({ 
         success: false,
-        message: "ID utilisateur invalide"
+        message: "ID utilisateur invalide" 
       });
     }
 
@@ -42,9 +32,9 @@ router.post('/', auth, async (req, res) => {
     });
 
     if (existingAppointment) {
-      return res.status(409).json({
+      return res.status(409).json({ 
         success: false,
-        message: "Créneau déjà réservé"
+        message: "Créneau déjà réservé" 
       });
     }
 
@@ -67,26 +57,17 @@ router.post('/', auth, async (req, res) => {
 
   } catch (error) {
     console.error("Erreur création rendez-vous:", error);
-    res.status(500).json({
+    res.status(500).json({ 
       success: false,
       message: "Erreur serveur lors de la création du rendez-vous",
-      error: error.message
+      error: error.message 
     });
   }
 });
 // Récupérer les rendez-vous de l'utilisateur avec leurs statuts
-router.get('/appointments/:userId', auth, async (req, res) => {
+router.get('/appointments/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
-    const requestUserId = req.user._id.toString(); // ID de l'utilisateur authentifié
-
-    // Vérifier que l'utilisateur demande ses propres rendez-vous
-    if (userId !== requestUserId) {
-      return res.status(403).json({
-        success: false,
-        message: "Vous n'êtes pas autorisé à accéder aux rendez-vous d'un autre utilisateur.",
-      });
-    }
 
     // Récupérer les rendez-vous pour l'utilisateur
     const appointments = await Appointment.find({ userId })
@@ -120,33 +101,16 @@ router.get('/appointments/:userId', auth, async (req, res) => {
     });
   }
 });
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', async (req, res) => {
   const appointmentId = req.params.id;
-  const requestUserId = req.user._id.toString(); // ID de l'utilisateur authentifié
-  const userRole = req.user.role; // Rôle de l'utilisateur authentifié
 
   try {
-    // Trouver le rendez-vous avant de le supprimer pour vérifier les autorisations
-    const appointment = await Appointment.findById(appointmentId);
+    // Utiliser findByIdAndDelete pour supprimer le rendez-vous
+    const appointment = await Appointment.findByIdAndDelete(appointmentId);
 
     if (!appointment) {
       return res.status(404).json({ message: "Rendez-vous non trouvé." });
     }
-
-    // Vérifier que l'utilisateur est autorisé à supprimer ce rendez-vous
-    // Un patient ne peut supprimer que ses propres rendez-vous
-    // Un médecin peut supprimer les rendez-vous où il est le médecin
-    if (
-      (userRole === 'patient' && appointment.userId.toString() !== requestUserId) ||
-      (userRole === 'doctor' && appointment.doctorId.toString() !== requestUserId)
-    ) {
-      return res.status(403).json({
-        message: "Vous n'êtes pas autorisé à supprimer ce rendez-vous."
-      });
-    }
-
-    // Supprimer le rendez-vous
-    await Appointment.findByIdAndDelete(appointmentId);
 
     res.status(200).json({ message: "Rendez-vous supprimé avec succès." });
   } catch (err) {
@@ -154,24 +118,14 @@ router.delete('/:id', auth, async (req, res) => {
     res.status(500).json({ message: "Erreur serveur lors de la suppression du rendez-vous." });
   }
 });
-router.get('/doctor/appointments/:doctorId', auth, async (req, res) => {
+router.get('/doctor/appointments/:doctorId', async (req, res) => {
   try {
     const { doctorId } = req.params;
-    const requestUserId = req.user._id.toString(); // ID de l'utilisateur authentifié
-    const userRole = req.user.role; // Rôle de l'utilisateur authentifié
-
-    // Vérifier que l'utilisateur est bien un médecin et qu'il demande ses propres rendez-vous
-    if (userRole !== 'doctor' || doctorId !== requestUserId) {
-      return res.status(403).json({
-        success: false,
-        message: "Vous n'êtes pas autorisé à accéder aux rendez-vous d'un autre médecin.",
-      });
-    }
 
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
-      return res.status(400).json({
+      return res.status(400).json({ 
         success: false,
-        message: "ID médecin invalide"
+        message: "ID médecin invalide" 
       });
     }
 
@@ -194,7 +148,7 @@ router.get('/doctor/appointments/:doctorId', auth, async (req, res) => {
       time: appointment.time,
       patientName: `${appointment.userId.name} ${appointment.userId.lastname}`,
       patientEmail: appointment.userId.email,
-      patientPhone: appointment.userId.phone || "Non renseigné",
+      patientPhone: appointment.userId.phone,
       status: appointment.status,
     }));
 
@@ -211,55 +165,41 @@ router.get('/doctor/appointments/:doctorId', auth, async (req, res) => {
 });
 
 // Mettre à jour le statut d'un rendez-vous
-router.put('/update-status/:id', auth, async (req, res) => {
+router.put('/update-status/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const requestUserId = req.user._id.toString(); // ID de l'utilisateur authentifié
-    const userRole = req.user.role; // Rôle de l'utilisateur authentifié
 
     // Vérifier si l'ID est valide
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "ID du rendez-vous invalide"
+      return res.status(400).json({ 
+        success: false, 
+        message: "ID du rendez-vous invalide" 
       });
     }
 
     // Vérifier que le statut est valide
     const validStatuses = ["pending", "confirmed", "canceled"];
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: "Statut invalide. Statuts autorisés : pending, confirmed, canceled"
+      return res.status(400).json({ 
+        success: false, 
+        message: "Statut invalide. Statuts autorisés : pending, confirmed, canceled" 
       });
     }
 
-    // Trouver le rendez-vous avant de le mettre à jour pour vérifier les autorisations
-    const appointment = await Appointment.findById(id);
-
-    if (!appointment) {
-      return res.status(404).json({
-        success: false,
-        message: "Rendez-vous non trouvé"
-      });
-    }
-
-    // Vérifier les autorisations
-    // Seul un médecin peut confirmer un rendez-vous, et seulement ses propres rendez-vous
-    if (userRole !== 'doctor' || appointment.doctorId.toString() !== requestUserId) {
-      return res.status(403).json({
-        success: false,
-        message: "Vous n'êtes pas autorisé à modifier ce rendez-vous"
-      });
-    }
-
-    // Mettre à jour le rendez-vous
+    // Trouver et mettre à jour le rendez-vous
     const updatedAppointment = await Appointment.findByIdAndUpdate(
       id,
       { status },
       { new: true }
     );
+
+    if (!updatedAppointment) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Rendez-vous non trouvé" 
+      });
+    }
 
     res.status(200).json({
       success: true,
